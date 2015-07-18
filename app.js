@@ -1,8 +1,8 @@
 var AWS                    = require('aws-sdk'),
     request                = require('request'),
-    enviromentAwsRegionMap = require("enviromentAwsRegionMap"),
+    enviromentAwsRegionMap = require("./enviromentAwsRegionMap.json"),
     airTrafficControlUrl   = "http://localhost:3000/",
-    currentEnviroment      = "development"
+    currentEnviroment      = "next"
 
 AWS.config.region = enviromentAwsRegionMap[currentEnviroment]
 
