@@ -1,0 +1,5 @@
+{
+  "development": "us-west-1",
+  "staging": "us-west-2",
+  "production": "us-east-1"
+}
