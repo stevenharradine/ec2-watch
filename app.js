@@ -1,6 +1,5 @@
 var AWS                    = require('aws-sdk'),
     request                = require('request'),
-    watchlist              = require("./watchlist.json"),
     airTrafficControlUrl   = "http://localhost:3000/",
     currentEnviroment      = "development",
     enviromentAwsRegionMap = { "development": "us-west-1",
@@ -43,7 +42,8 @@ function getInstancesFromAws (callback) {
 }
 
 function whatsMissingFromWatchlist (instances, callback) {
-  var missingInstances = Array ()
+  var missingInstances = Array (),
+      watchlist        = require("./watchlist.json")
 
   for (w in watchlist) {
     var isFound = false
