@@ -1,9 +1,14 @@
-var AWS = require('aws-sdk'),
-    request = require('request'),
-    watchlist = Array(),
-    airTrafficControlUrl = "http://localhost:3000/"
+var AWS                    = require('aws-sdk'),
+    request                = require('request'),
+    watchlist              = Array(),
+    airTrafficControlUrl   = "http://localhost:3000/",
+    currentEnviroment      = "development",
+    enviromentAwsRegionMap = { "development": "us-west-1",
+                               "staging": "us-west-2",
+                               "production": "us-east-1"
+                             }
 
-AWS.config.region    = 'us-west-1'
+AWS.config.region = enviromentAwsRegionMap[currentEnviroment]
 
 watchlist.push ( {"project":"project-name","serverType":"inbound"} )
 watchlist.push ( {"project":"project-name","serverType":"application"} )
@@ -24,9 +29,9 @@ function getInstancesFromAws (callback) {
       for (i in data.Reservations) {
         for (j in data.Reservations[i].Instances) {
           for (k in data.Reservations[i].Instances[j].SecurityGroups) {
-            var groupsDivided  = data.Reservations[i].Instances[j].SecurityGroups[k].GroupName.split("-"),
-                project        = groupsDivided.splice(0, groupsDivided.length - 1).join('-'),
-                serverType     = groupsDivided.splice(groupsDivided.length - 1)[0]
+            var groupsDivided = data.Reservations[i].Instances[j].SecurityGroups[k].GroupName.split("-"),
+                project       = groupsDivided.splice(0, groupsDivided.length - 1).join('-'),
+                serverType    = groupsDivided.splice(groupsDivided.length - 1)[0]
 
             if (serverType != "managed") {  // filter out managed
               instances.push ( { "project":project, "serverType":serverType } )
@@ -62,7 +67,7 @@ function whatsMissingFromWatchlist (instances, callback) {
 
 function rebuildWhatsMissing (missingInstances) {
   for (m in missingInstances) {
-    var build_url = airTrafficControlUrl + "build/development/" + missingInstances[m].project
+    var build_url = airTrafficControlUrl + "build/" + currentEnviroment + "/" + missingInstances[m].project
     console.log ("Building: " + missingInstances[m].project)
 
     request(build_url, function (error, response, body) {
