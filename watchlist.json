@@ -1,0 +1,7 @@
+[{
+	"serverType":"inbound",
+	"project":"project-name"
+},{
+	"serverType":"application",
+	"project":"project-name"
+}]

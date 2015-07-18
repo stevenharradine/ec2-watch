@@ -1,6 +1,6 @@
 var AWS                    = require('aws-sdk'),
     request                = require('request'),
-    watchlist              = Array(),
+    watchlist              = require("./watchlist.json"),
     airTrafficControlUrl   = "http://localhost:3000/",
     currentEnviroment      = "development",
     enviromentAwsRegionMap = { "development": "us-west-1",
@@ -9,9 +9,6 @@ var AWS                    = require('aws-sdk'),
                              }
 
 AWS.config.region = enviromentAwsRegionMap[currentEnviroment]
-
-watchlist.push ( {"project":"project-name","serverType":"inbound"} )
-watchlist.push ( {"project":"project-name","serverType":"application"} )
 
 getInstancesFromAws ( function (instances) {
   whatsMissingFromWatchlist (instances, function (missingInstances) {
