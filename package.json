@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "aws-sdk": "*",
-    "request": "*"
+    "request": "*",
+    "node-slack": "*"
   }
 }

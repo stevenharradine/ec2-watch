@@ -1,9 +1,12 @@
-var AWS                    = require('aws-sdk'),
+var CONFIG                 = require("./config"),
+    AWS                    = require('aws-sdk'),
     request                = require('request'),
     enviromentAwsRegionMap = require("./enviromentAwsRegionMap.json"),
     airTrafficControlUrl   = "http://localhost:3000/",
     currentEnviroment      = "next",
-    setRecisiveDelay       = 300000
+    setRecisiveDelay       = 300000,
+    Slack                  = require("node-slack");
+    slack                  = new Slack("https://hooks.slack.com/services/" + CONFIG.SLACK_TOKEN);
 
 AWS.config.region = enviromentAwsRegionMap[currentEnviroment]
 
@@ -53,7 +56,8 @@ function whatsMissingFromWatchlist (instances, callback) {
       watchlist        = require("./watchlist.json")
 
   for (w in watchlist) {
-    var isFound = false
+    var isFound = false,
+        slackMessage = "Missing " + watchlist[w].project + " in " + currentEnviroment
 
     for (i in instances) {
       if (watchlist[w].project == instances[i].project && watchlist[w].serverType == instances[i].serverType ) {
@@ -66,10 +70,23 @@ function whatsMissingFromWatchlist (instances, callback) {
         "project":watchlist[w].project,
         "serverType":watchlist[w].serverType
       })
+      sendSlack (slackMessage, "#skynet");
     }
   }
 
   callback (missingInstances)
+}
+
+function sendSlack (message, channel) {
+  slack.send({
+    text: message,
+    channel: channel,
+    username: "EC2 Watch"
+  }, function (error) {
+    if (error != null && error.message != null) {
+      console.log ("Slack: " + error.message);
+    }
+  });
 }
 
 function rebuildWhatsMissing (missingInstances, callback) {
