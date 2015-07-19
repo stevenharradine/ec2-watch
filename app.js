@@ -1,14 +1,10 @@
 var CONFIG                 = require("./config"),
     AWS                    = require('aws-sdk'),
     request                = require('request'),
-    enviromentAwsRegionMap = require("./enviromentAwsRegionMap.json"),
-    airTrafficControlUrl   = "http://localhost:3000/",
-    currentEnviroment      = "next",
-    setRecisiveDelay       = 300000,
     Slack                  = require("node-slack");
     slack                  = new Slack("https://hooks.slack.com/services/" + CONFIG.SLACK_TOKEN);
 
-AWS.config.region = enviromentAwsRegionMap[currentEnviroment]
+AWS.config.region = CONFIG.ENVIROMENT_AWS_REGION_MAP[CONFIG.CURRENT_ENVIROMENT]
 
 runProgram ()
 
@@ -57,7 +53,7 @@ function whatsMissingFromWatchlist (instances, callback) {
 
   for (w in watchlist) {
     var isFound = false,
-        slackMessage = "Missing " + watchlist[w].project + " in " + currentEnviroment
+        slackMessage = "Missing " + watchlist[w].project + " in " + CONFIG.CURRENT_ENVIROMENT
 
     for (i in instances) {
       if (watchlist[w].project == instances[i].project && watchlist[w].serverType == instances[i].serverType ) {
@@ -91,7 +87,7 @@ function sendSlack (message, channel) {
 
 function rebuildWhatsMissing (missingInstances, callback) {
   if (missingInstances.length != 0) {
-    build (currentEnviroment, missingInstances, 0, callback)  // start recusive call to iterate through the chain
+    build (CONFIG.CURRENT_ENVIROMENT, missingInstances, 0, callback)  // start recusive call to iterate through the chain
   } else {
     callback ()
   }
@@ -100,7 +96,7 @@ function rebuildWhatsMissing (missingInstances, callback) {
 function build (enviroment, missingInstances, m, callback) {
   console.log ("Building: " + missingInstances[m].project)
 
-  var build_url = airTrafficControlUrl + "build/" + enviroment + "/" + missingInstances[m].project
+  var build_url = CONFIG.AIR_TRAFFIC_CONTROL_URL + "build/" + enviroment + "/" + missingInstances[m].project
 
   request(build_url, function (error, response, body) {
     if (error) {
@@ -123,5 +119,5 @@ function startOver () {
   setTimeout( function () {
     console.log ("Starting over ...")
     runProgram ()
-  }, setRecisiveDelay)
+  }, CONFIG.SET_RECURSIVE_DELAY)
 }
