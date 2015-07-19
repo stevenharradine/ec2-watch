@@ -2,15 +2,22 @@ var AWS                    = require('aws-sdk'),
     request                = require('request'),
     enviromentAwsRegionMap = require("./enviromentAwsRegionMap.json"),
     airTrafficControlUrl   = "http://localhost:3000/",
-    currentEnviroment      = "next"
+    currentEnviroment      = "next",
+    setRecisiveDelay       = 300000
 
 AWS.config.region = enviromentAwsRegionMap[currentEnviroment]
 
-getInstancesFromAws ( function (instances) {
-  whatsMissingFromWatchlist (instances, function (missingInstances) {
-    rebuildWhatsMissing (missingInstances)
+runProgram ()
+
+function runProgram () {
+  getInstancesFromAws ( function (instances) {
+    whatsMissingFromWatchlist (instances, function (missingInstances) {
+      rebuildWhatsMissing (missingInstances, function () {
+        startOver ()
+      })
+    })
   })
-})
+}
 
 function getInstancesFromAws (callback) {
   var instances = Array ()
@@ -27,7 +34,10 @@ function getInstancesFromAws (callback) {
                 serverType    = groupsDivided.splice(groupsDivided.length - 1)[0]
 
             if (serverType != "managed") {  // filter out managed
-              instances.push ( { "project":project, "serverType":serverType } )
+              instances.push ({
+                "project":project,
+                "serverType":serverType
+              })
             }
           }
         }
@@ -52,24 +62,49 @@ function whatsMissingFromWatchlist (instances, callback) {
     }
 
     if (!isFound) {
-      missingInstances.push ( { "project":watchlist[w].project, "serverType":watchlist[w].serverType } )
+      missingInstances.push ({
+        "project":watchlist[w].project,
+        "serverType":watchlist[w].serverType
+      })
     }
   }
 
   callback (missingInstances)
 }
 
-function rebuildWhatsMissing (missingInstances) {
-  for (m in missingInstances) {
-    var build_url = airTrafficControlUrl + "build/" + currentEnviroment + "/" + missingInstances[m].project
-    console.log ("Building: " + missingInstances[m].project)
+function rebuildWhatsMissing (missingInstances, callback) {
+  if (missingInstances.length != 0) {
+    build (currentEnviroment, missingInstances, 0, callback)  // start recusive call to iterate through the chain
+  } else {
+    callback ()
+  }
+}
 
-    request(build_url, function (error, response, body) {
-      if (error) {
-        console.log (error)
-      } else if (response.statusCode == 200) {
-        console.log(body)
-      }
-    })
-   }  
+function build (enviroment, missingInstances, m, callback) {
+  console.log ("Building: " + missingInstances[m].project)
+
+  var build_url = airTrafficControlUrl + "build/" + enviroment + "/" + missingInstances[m].project
+
+  request(build_url, function (error, response, body) {
+    if (error) {
+      console.log (error)
+    } else if (response.statusCode == 200) {
+      console.log(body)
+    }
+
+    if (m == missingInstances.length -1) {   // when at the last element in the chain break out to the callback
+      callback()
+    } else {                                  // move to next element in the chain
+      build (enviroment, missingInstances, ++m, callback);
+    }
+  }) 
+}
+
+function startOver () {
+  console.log ("End of chain")
+  
+  setTimeout( function () {
+    console.log ("Starting over ...")
+    runProgram ()
+  }, setRecisiveDelay)
 }
