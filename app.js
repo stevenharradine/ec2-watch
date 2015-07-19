@@ -53,7 +53,7 @@ function whatsMissingFromWatchlist (instances, callback) {
 
   for (w in watchlist) {
     var isFound = false,
-        slackMessage = "Missing " + watchlist[w].project + " in " + CONFIG.CURRENT_ENVIROMENT
+        slackMessage = "Missing " + watchlist[w].project + " (" + watchlist[w].serverType + ") in " + CONFIG.CURRENT_ENVIROMENT
 
     for (i in instances) {
       if (watchlist[w].project == instances[i].project && watchlist[w].serverType == instances[i].serverType ) {
