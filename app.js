@@ -96,7 +96,7 @@ function rebuildWhatsMissing (missingInstances, callback) {
 function build (enviroment, missingInstances, m, callback) {
   console.log ("Building: " + missingInstances[m].project)
 
-  var build_url = CONFIG.AIR_TRAFFIC_CONTROL_URL + "build/" + enviroment + "/" + missingInstances[m].project
+  var build_url = CONFIG.AIR_TRAFFIC_CONTROL_URL + enviroment + "/build/" + missingInstances[m].project
 
   request(build_url, function (error, response, body) {
     if (error) {
